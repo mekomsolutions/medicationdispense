@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openmrs.Concept;
+import org.openmrs.EncounterType;
 import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.OrderService;
+import org.openmrs.module.medicationdispense.MedicationDispenseConstants;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +27,7 @@ public class DispensePageController {
 
 	public void controller(@RequestParam("patient") Patient patient,
 			@RequestParam(value="visit", required=false) Visit visit,
+			@RequestParam(value = "returnUrl", required = false) String returnUrl,
 			@RequestParam("order") Order order,
 			@SpringBean("obsService") ObsService obsService,
 			@SpringBean("orderService") OrderService orderService,
@@ -41,6 +44,10 @@ public class DispensePageController {
 		if (visit != null) {
 			jsonConfig.put("visit", convertToFull(visit));
 		}
+		
+		if (returnUrl != null ) {
+			jsonConfig.put("returnUrl", convertToFull(returnUrl));
+		}
 
 		jsonConfig.put("order", convertToFull(order));
 
@@ -48,7 +55,10 @@ public class DispensePageController {
 		Set<Concept> quantityUnits = new LinkedHashSet<Concept>();
 		quantityUnits.addAll(dispensingUnits);
 		jsonConfig.put("quantityUnits", convertToFull(dispensingUnits));
-		
+
+		EncounterType encounterType = encounterService.getEncounterTypeByUuid(MedicationDispenseConstants.DISPENSE_ENCOUNTER_TYPE_UUID);
+		jsonConfig.put("dispenseEncounterType", convertToFull(encounterType));
+
 		model.put("patient", patient);
 		model.put("jsonConfig", ui.toJson(jsonConfig));
 
